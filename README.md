@@ -58,3 +58,19 @@ CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS        
 4ce6e7ea2363   ae        "/bin/sh -c '/opt/ae…"   2 minutes ago   Up About a minute   0.0.0.0:81->80/tcp, :::81->80/tcp   recursing_golick
 35d5606b6b82   ae        "/bin/sh -c '/opt/ae…"   2 minutes ago   Up 2 minutes        0.0.0.0:80->80/tcp, :::80->80/tcp   wonderful_volhard
 ```
+
+## Troubleshooting
+
+When running Docker images on a server or on a Kubernetes cluster, the ranom number generator (PRNG) of the operating system may not provide enough entropy and the system may
+block or be very slow. There are different alternatives to fix this issue:
+- install another entropy source
+```apt install haveged```
+```yum install haveged```
+- change the way java uses the entropy to use `urandom` instead
+```sed -i.bak \
+  -e "s/securerandom.source=file:\/dev\/random/securerandom.source=file:\/dev\/urandom/g" \
+  -e "s/securerandom.strongAlgorithms=NativePRNGBlocking/securerandom.strongAlgorithms=NativePRNG/g" \
+  $JAVA_HOME/lib/security/java.security
+```
+- map the operating system PRNG to the Docker one
+```docker run -v /dev/random:/dev/random```
